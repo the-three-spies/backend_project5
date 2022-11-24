@@ -12,12 +12,6 @@ const getemaildoner = (req, res,next) => {
             message: "no user found",
           });
         }
-        // res.status(200).json({
-        //   success: true,
-        //   message: "All the email for doners ",
-        //   result: result.rows,
-        //   length:result.rows.length
-        // });
         let doneremail=[];
      result.rows.forEach((e)=>
      {
@@ -32,5 +26,33 @@ req.body={email:doneremail,date:date}
           .json({ success: false, message: "Server Error", err: err.message });
       });
   };
+  const getUserMaxdonationOrder = (req, res,next) => {  
+    const query = `SELECT users.email,COUNT(doner_givin.id) AS NumberOfDonationOrder FROM doner_givin
+    LEFT JOIN users ON doner_givin.doner_id=users.id
+    GROUP BY email ORDER BY COUNT(doner_givin.id) DESC;
+    `
+    pool
+      .query(query)
+      .then((result) => {
+        console.log("result= ", result);
+        if (result.rows.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "no dontion order found found",
+          });
+        }
+       
+        else{
 
-  module.exports={getemaildoner}
+          req.body={email:result.rows[0].email}
+          next()
+        }
+        
+      })
+      .catch((err) => {
+        res
+          .status(500)
+          .json({ success: false, message: "Server Error", err: err.message });
+      });
+  };
+  module.exports={getemaildoner,getUserMaxdonationOrder}
